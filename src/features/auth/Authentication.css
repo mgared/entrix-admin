@@ -1,0 +1,262 @@
+/* Reset */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: radial-gradient(circle at top, #0f172a 0%, #020817 55%);
+  color: #e5e7eb;
+}
+
+/* Root layout */
+
+.login-root {
+  height: 100vh;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.login-shell {
+  width: 100%;
+  max-width: 960px;
+  border-radius: 24px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+  background: #020817;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(75, 85, 99, 0.7);
+}
+
+/* Left side (brand minimal) */
+
+.login-left {
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+
+.login-logo-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-logo-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(59, 180, 74, 0.95);
+}
+
+.login-brand {
+  margin: 4px 0 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+.login-label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* Right side (form) */
+
+.login-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: radial-gradient(circle at top, #020817 0%, #020817 80%);
+  border-radius: 18px;
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(75, 85, 99, 0.95);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-card-header {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.login-card-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #020817;
+  box-shadow: 0 8px 24px rgba(59, 180, 74, 0.6);
+}
+
+.login-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+.login-subtitle {
+  margin: 2px 0 0;
+  font-size: 0.72rem;
+  color: #9ca3af;
+}
+
+/* Form */
+
+.login-form {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.field-label {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.field-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-icon {
+  position: absolute;
+  left: 8px;
+  color: #6b7280;
+}
+
+.field-input {
+  width: 100%;
+  padding: 8px 9px 8px 26px;
+  border-radius: 10px;
+  border: 1px solid rgba(75, 85, 99, 0.9);
+  background: #020817;
+  color: #e5e7eb;
+  font-size: 0.8rem;
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+.field-input::placeholder {
+  color: #6b7280;
+}
+
+.field-input:focus {
+  border-color: #3bb44a;
+  box-shadow: 0 0 0 1px rgba(59, 180, 74, 0.4);
+}
+
+/* Error & meta */
+
+.error-text {
+  font-size: 0.7rem;
+  color: #f97316;
+}
+
+.login-button {
+  margin-top: 4px;
+  width: 100%;
+  padding: 9px 0;
+  border-radius: 999px;
+  border: none;
+  background: #3bb44a;
+  color: #020817;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: 0 14px 40px rgba(59, 180, 74, 0.7);
+  transition: all 0.18s ease;
+}
+
+.login-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 60px rgba(59, 180, 74, 0.95);
+}
+
+.login-meta {
+  margin-top: 4px;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .login-left {
+    align-items: flex-start;
+  }
+
+  .login-right {
+    justify-content: flex-start;
+  }
+}
+
+/* Eye (press-to-reveal) button inside input */
+.reveal-btn {
+  position: absolute;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(75, 85, 99, 0.8);
+  border-radius: 999px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.16s ease;
+}
+
+.reveal-btn:hover {
+  background: rgba(17, 24, 39, 0.9);
+  color: #e5e7eb;
+  border-color: #3bb44a;
+}

@@ -1,0 +1,43 @@
+export const initialAmenityRequestsByBuilding = {
+  "hancock-village": [
+    {
+      id: "a1",
+      name: "Emily Stone",
+      unitLabel: "5C",
+      amenity: "Clubhouse",
+      bookedDate: "2025-11-10",
+      startAt: "18:00",
+      endAt: "20:00",
+      notes: "Small birthday gathering (~10 people).",
+      status: "pending",
+      createdAt: "2025-11-07T10:30:00",
+    },
+    {
+      id: "a2",
+      name: "John Doe",
+      unitLabel: "12B",
+      amenity: "Fitness Center",
+      bookedDate: "2025-11-09",
+      startAt: "07:00",
+      endAt: "08:00",
+      notes: "",
+      status: "approved",
+      createdAt: "2025-11-07T09:12:00",
+    },
+  ],
+  "harbor-point": [
+    {
+      id: "a3",
+      name: "Laura King",
+      unitLabel: "804",
+      amenity: "Roof Deck",
+      bookedDate: "2025-11-12",
+      startAt: "17:00",
+      endAt: "19:00",
+      notes: "Photoshoot.",
+      status: "pending",
+      createdAt: "2025-11-08T13:22:00",
+    },
+  ],
+  "cambridge-park": [],
+};
