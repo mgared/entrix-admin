@@ -37,9 +37,7 @@ import { slideshowPath } from "../../lib/storagePaths";
 
 // import { demoAdmin } from "../../data/demoAdmin";
 // REMOVE: import { demoBuildings } from "../../data/demoBuildings";
-import { initialAmenityRequestsByBuilding } from "../../data/demoAmenityRequests";
-import { initialSlideshowsByBuilding } from "../../data/demoSlideshows";
-import { initialUnitsByBuilding } from "../../data/demoUnits";
+//
 
 import "./page.css";
 import { computeEndTime } from "../../utils/time";
@@ -139,15 +137,21 @@ export default function AdminPage() {
     error: bookingsError,
   } = useAmenityBookings(selectedBuildingId);
 
+  // const [amenityRequestsByBuilding, setAmenityRequestsByBuilding] = useState(
+  //   initialAmenityRequestsByBuilding
+  // );
+  // const [slideshowsByBuilding, setSlideshowsByBuilding] = useState(
+  //   initialSlideshowsByBuilding
+  // );
+  // const [unitsByBuilding, setUnitsByBuilding] = useState(
+  //   initialUnitsByBuilding
+  // );
+
   const [amenityRequestsByBuilding, setAmenityRequestsByBuilding] = useState(
-    initialAmenityRequestsByBuilding
+    {}
   );
-  const [slideshowsByBuilding, setSlideshowsByBuilding] = useState(
-    initialSlideshowsByBuilding
-  );
-  const [unitsByBuilding, setUnitsByBuilding] = useState(
-    initialUnitsByBuilding
-  );
+  const [slideshowsByBuilding, setSlideshowsByBuilding] = useState({});
+  const [unitsByBuilding, setUnitsByBuilding] = useState({});
 
   const [showAddBooking, setShowAddBooking] = useState(false);
   const [newBooking, setNewBooking] = useState(getEmptyNewBooking());

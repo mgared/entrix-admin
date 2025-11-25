@@ -202,6 +202,8 @@
 .panel-body {
   flex: 1;
   margin-top: 4px;
+  overflow: visible; /* or just leave it unset */
+  max-height: none;
 }
 
 .scroll {
@@ -716,4 +718,32 @@
   padding: 2px 4px;
   border-radius: 4px;
   color: #9ca3af;
+}
+
+.icon-button {
+  border: 1px solid rgba(255, 255, 255, 0.14); /* subtle outline */
+  background: rgba(255, 255, 255, 0.04); /* soft dark chip */
+  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* icon color */
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.icon-button:hover {
+  background: rgba(59, 180, 74, 0.18); /* your green accent */
+  border-color: rgba(59, 180, 74, 0.7);
+  color: #3bb44a;
+}
+
+.icon-button svg {
+  width: 14px;
+  height: 14px;
 }
