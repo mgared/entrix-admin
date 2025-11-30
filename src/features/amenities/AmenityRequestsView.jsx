@@ -14,6 +14,7 @@ function AmenityRequestsView({
   dataOverride, // <-- NEW
   loadingOverride, // <-- NEW
   errorOverride, // <-- NEW
+  canEdit = false,
 }) {
   const all = Array.isArray(dataOverride)
     ? dataOverride
@@ -72,9 +73,10 @@ function AmenityRequestsView({
                 <th>From - To</th>
                 <th>Notes</th>
                 <th>Status</th>
-                <th>Quick Action</th>
+                {canEdit && <th>Quick Action</th>} {/* NEW */}
               </tr>
             </thead>
+
             <tbody>
               {amenityRequests.map((r) => (
                 <tr key={`${r.amenityId}_${r.id}`}>
@@ -89,43 +91,58 @@ function AmenityRequestsView({
                   <td>
                     <StatusPill status={r.status} />
                   </td>
-                  <td>
-                    <div className="actions-inline">
-                      {r.status !== "approved" && (
-                        <button
-                          className="mini-btn mini-approve"
-                          type="button"
-                          onClick={() =>
-                            onChangeRequestStatus(r.amenityId, r.id, "approved")
-                          }
-                        >
-                          Approve
-                        </button>
-                      )}
-                      {r.status !== "rejected" && (
-                        <button
-                          className="mini-btn mini-reject"
-                          type="button"
-                          onClick={() =>
-                            onChangeRequestStatus(r.amenityId, r.id, "rejected")
-                          }
-                        >
-                          Reject
-                        </button>
-                      )}
-                      {r.status !== "pending" && (
-                        <button
-                          className="mini-btn mini-reset"
-                          type="button"
-                          onClick={() =>
-                            onChangeRequestStatus(r.amenityId, r.id, "pending")
-                          }
-                        >
-                          Reset
-                        </button>
-                      )}
-                    </div>
-                  </td>
+
+                  {canEdit && (
+                    <td>
+                      <div className="actions-inline">
+                        {r.status !== "approved" && (
+                          <button
+                            className="mini-btn mini-approve"
+                            type="button"
+                            onClick={() =>
+                              onChangeRequestStatus?.(
+                                r.amenityId,
+                                r.id,
+                                "approved"
+                              )
+                            }
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {r.status !== "rejected" && (
+                          <button
+                            className="mini-btn mini-reject"
+                            type="button"
+                            onClick={() =>
+                              onChangeRequestStatus?.(
+                                r.amenityId,
+                                r.id,
+                                "rejected"
+                              )
+                            }
+                          >
+                            Reject
+                          </button>
+                        )}
+                        {r.status !== "pending" && (
+                          <button
+                            className="mini-btn mini-reset"
+                            type="button"
+                            onClick={() =>
+                              onChangeRequestStatus?.(
+                                r.amenityId,
+                                r.id,
+                                "pending"
+                              )
+                            }
+                          >
+                            Reset
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -133,15 +150,17 @@ function AmenityRequestsView({
         )}
       </div>
 
-      <div className="add-booking-bar">
-        <button
-          type="button"
-          className="primary-line-btn"
-          onClick={onOpenAddBooking}
-        >
-          + Add booking
-        </button>
-      </div>
+      {canEdit && (
+        <div className="add-booking-bar">
+          <button
+            type="button"
+            className="primary-line-btn"
+            onClick={onOpenAddBooking}
+          >
+            + Add booking
+          </button>
+        </div>
+      )}
     </section>
   );
 }

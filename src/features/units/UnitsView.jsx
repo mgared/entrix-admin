@@ -10,6 +10,7 @@ function UnitsView({
   onToggleActive,
   onOpenEdit,
   onOpenAdd,
+  canEdit = false, // <-- NEW
 }) {
   return (
     <section className="panel">
@@ -41,6 +42,7 @@ function UnitsView({
                 <th>Status</th>
                 <th>Notes</th>
                 <th>Actions</th>
+                {canEdit && <th>Actions</th>} {/* NEW */}
               </tr>
             </thead>
             <tbody>
@@ -59,21 +61,26 @@ function UnitsView({
                             ? "unit-pill unit-active"
                             : "unit-pill unit-inactive"
                         }
-                        onClick={() => onToggleActive(u)} // pass whole unit (id+active)
+                        onClick={
+                          canEdit ? () => onToggleActive?.(u) : undefined
+                        }
+                        style={canEdit ? undefined : { cursor: "default" }}
                       >
                         {u.active ? "Active" : "Inactive"}
                       </span>
                     </td>
                     <td>{u.notes || "—"}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="mini-btn mini-reset"
-                        onClick={() => onOpenEdit(u)}
-                      >
-                        Edit
-                      </button>
-                    </td>
+                    {canEdit && (
+                      <td>
+                        <button
+                          type="button"
+                          className="mini-btn mini-reset"
+                          onClick={() => onOpenEdit?.(u)}
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
             </tbody>
@@ -81,11 +88,17 @@ function UnitsView({
         )}
       </div>
 
-      <div className="add-booking-bar">
-        <button type="button" className="primary-line-btn" onClick={onOpenAdd}>
-          + Add unit
-        </button>
-      </div>
+      {canEdit && (
+        <div className="add-booking-bar">
+          <button
+            type="button"
+            className="primary-line-btn"
+            onClick={onOpenAdd}
+          >
+            + Add unit
+          </button>
+        </div>
+      )}
     </section>
   );
 }

@@ -5,7 +5,11 @@ import { Trash2 } from "lucide-react";
  * slides: array of { id, url, ... }
  * onDelete: function(slideOrId)
  */
-export default function SlideshowGrid({ slides = [], onDelete }) {
+export default function SlideshowGrid({
+  slides = [],
+  onDelete,
+  canEdit = false,
+}) {
   if (!slides.length) {
     return (
       <div className="muted small">
@@ -25,14 +29,17 @@ export default function SlideshowGrid({ slides = [], onDelete }) {
               alt="Slideshow"
               loading="lazy"
             />
-            <button
-              type="button"
-              className="slideshow-delete-btn"
-              onClick={() => onDelete(slide)} // pass full object
-              title="Delete image"
-            >
-              <Trash2 size={14} />
-            </button>
+            {/* Only show delete button if user can edit AND handler exists */}
+            {canEdit && onDelete && (
+              <button
+                type="button"
+                className="slideshow-delete-btn"
+                onClick={() => onDelete(slide)} // pass full object
+                title="Delete image"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
           </div>
 
           <div className="slideshow-meta">

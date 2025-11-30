@@ -10,6 +10,9 @@ function SlideshowsView({
   onDeleteSlide,
   onTriggerUpload,
   onSlidesSelected,
+  canEdit = false, // <-- NEW
+  loadingOverride,
+  errorOverride,
 }) {
   return (
     <section className="panel">
@@ -24,15 +27,27 @@ function SlideshowsView({
       </div>
 
       <div className="panel-body">
-        <SlideshowGrid slides={slides} onDelete={onDeleteSlide} />
+        {loadingOverride ? (
+          <div className="muted">Loading slides…</div>
+        ) : errorOverride ? (
+          <div className="error-text">{errorOverride}</div>
+        ) : (
+          <SlideshowGrid
+            slides={slides}
+            onDelete={canEdit ? onDeleteSlide : undefined} // no delete in UI
+            canEdit={canEdit} // optional, for grid
+          />
+        )}
       </div>
 
-      <SlideshowUploadBar
-        fileInputRef={fileInputRef}
-        onTriggerUpload={onTriggerUpload}
-        onFilesSelected={onSlidesSelected}
-        selectedBuildingId={buildingId}
-      />
+      {canEdit && (
+        <SlideshowUploadBar
+          fileInputRef={fileInputRef}
+          onTriggerUpload={onTriggerUpload}
+          onFilesSelected={onSlidesSelected}
+          selectedBuildingId={buildingId}
+        />
+      )}
     </section>
   );
 }

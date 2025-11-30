@@ -3,9 +3,9 @@ import React, { useRef, useState, useEffect } from "react";
 import { MapPin, LogOut, MoreHorizontal, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
-import { db } from "../lib/firebase";
+import { db, storage } from "../lib/firebase"; // 👈 add storage here
 import {
-  getStorage,
+  // getStorage,
   ref as sref,
   uploadBytes,
   getDownloadURL,
@@ -39,10 +39,10 @@ function Topbar({ admin, buildings, selectedBuildingId, onSelectBuilding }) {
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
   // make sure we target the correct bucket
-  const storageForLogos = getStorage(
-    undefined,
-    "gs://entrix-30a48.appspot.com"
-  );
+  // const storageForLogos = getStorage(
+  //   undefined,
+  //   "gs://entrix-30a48.appspot.com"
+  // );
 
   const handleLogout = async () => {
     await logout();
@@ -65,7 +65,7 @@ function Topbar({ admin, buildings, selectedBuildingId, onSelectBuilding }) {
 
       const ext = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
       const path = `properties/${selectedBuildingId}/logo/logo_${Date.now()}.${ext}`;
-      const r = sref(storageForLogos, path);
+      const r = sref(storage, path);
       await uploadBytes(r, file);
       const url = await getDownloadURL(r);
 

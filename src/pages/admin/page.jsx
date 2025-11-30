@@ -90,6 +90,8 @@ export default function AdminPage() {
     visits,
     loading: visitsLoading,
     error: visitsError,
+    canLoadMore: visitsCanLoadMore,
+    loadMore: loadMoreVisits,
   } = usePropertyVisits(selectedBuildingId);
 
   const {
@@ -126,6 +128,9 @@ export default function AdminPage() {
       setSelectedBuildingId(properties[0].id);
     }
   }, [properties, selectedBuildingId]);
+
+  const role = adminProfile?.role || "concierge";
+  const canManageContent = role === "God" || role === "admin";
 
   const [visitorFilter, setVisitorFilter] = useState("today");
   const [amenityStatusFilter, setAmenityStatusFilter] = useState("all");
@@ -489,31 +494,36 @@ export default function AdminPage() {
             dataOverride={visits}
             loadingOverride={visitsLoading}
             errorOverride={visitsError}
+            canLoadMore={visitsCanLoadMore}
+            onLoadMore={loadMoreVisits}
           />
         )}
+
         {activeView === "amenities" && (
           <AmenityRequestsView
             buildingId={selectedBuildingId}
-            amenityRequestsByBuilding={amenityRequestsByBuilding} // legacy, unused when override present
+            amenityRequestsByBuilding={amenityRequestsByBuilding}
             amenityStatusFilter={amenityStatusFilter}
             onChangeStatusFilter={setAmenityStatusFilter}
-            onChangeRequestStatus={handleAmenityStatusChange}
-            onOpenAddBooking={openAddBooking}
+            onChangeRequestStatus={
+              canManageContent ? handleAmenityStatusChange : undefined
+            }
+            onOpenAddBooking={canManageContent ? openAddBooking : undefined}
             dataOverride={liveAmenityBookings}
             loadingOverride={bookingsLoading}
             errorOverride={bookingsError}
+            canEdit={canManageContent}
           />
         )}
         {activeView === "slideshows" && (
           <SlideshowsView
             buildingId={selectedBuildingId}
-            // Use live slides; your demo fallback is no longer needed here
-            slides={liveSlides}
             fileInputRef={fileInputRef}
-            onDeleteSlide={handleDeleteSlide}
-            onTriggerUpload={triggerUpload}
-            onSlidesSelected={handleSlidesUpload}
-            // optional: show state inside the panel
+            slides={liveSlides}
+            onDeleteSlide={canManageContent ? handleDeleteSlide : undefined}
+            onTriggerUpload={canManageContent ? triggerUpload : undefined}
+            onSlidesSelected={canManageContent ? handleSlidesUpload : undefined}
+            canEdit={canManageContent}
             loadingOverride={slidesLoading}
             errorOverride={slidesError}
           />
@@ -525,9 +535,17 @@ export default function AdminPage() {
             hasUnits={hasUnits}
             loading={unitsLoading}
             error={unitsError}
-            onToggleActive={toggleUnitActive}
-            onOpenEdit={openEditUnit}
-            onOpenAdd={openAddUnit}
+            onToggleActive={canManageContent ? toggleUnitActive : undefined}
+            onOpenEdit={canManageContent ? openEditUnit : undefined}
+            onOpenAdd={canManageContent ? openAddUnit : undefined}
+            canEdit={canManageContent}
+          />
+        )}
+
+        {activeView === "events" && (
+          <EventsView
+            building={selectedBuilding}
+            canManageEvents={canManageContent}
           />
         )}
       </AdminLayout>

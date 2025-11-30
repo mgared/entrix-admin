@@ -1,21 +1,44 @@
-// Live reads Properties/{propertyId}/visits and returns a normalized array.
+// src/features/visitors/usePropertyVisits.js
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  limit,
+} from "firebase/firestore";
 import { db } from "../../lib/firebase";
+
+const INITIAL_LIMIT = 30;
+const PAGE_SIZE = 10;
 
 export default function usePropertyVisits(propertyId) {
   const [visits, setVisits] = useState([]);
   const [loading, setLoading] = useState(!!propertyId);
   const [error, setError] = useState("");
 
+  const [limitCount, setLimitCount] = useState(INITIAL_LIMIT);
+  const [canLoadMore, setCanLoadMore] = useState(false);
+
+  // reset when property changes
+  useEffect(() => {
+    setVisits([]);
+    setError("");
+    setLimitCount(INITIAL_LIMIT);
+    setCanLoadMore(false);
+    setLoading(!!propertyId);
+  }, [propertyId]);
+
   useEffect(() => {
     if (!propertyId) return;
+
     setLoading(true);
     setError("");
 
     const q = query(
       collection(db, "Properties", propertyId, "visits"),
-      orderBy("createdAt", "desc")
+      orderBy("createdAt", "desc"),
+      limit(limitCount)
     );
 
     const unsub = onSnapshot(
@@ -24,7 +47,7 @@ export default function usePropertyVisits(propertyId) {
         const rows = [];
         snap.forEach((d) => {
           const data = d.data() || {};
-          // Normalize Firestore Timestamps -> JS Date
+
           const createdAt = data.createdAt?.toDate
             ? data.createdAt.toDate()
             : data.createdAt || null;
@@ -39,14 +62,16 @@ export default function usePropertyVisits(propertyId) {
             unitLabel: data.unitLabel || "",
             reason: data.reason || "",
             staffDepartmentRole: data.staffDepartmentRole || "",
-            staffPrimaryLocation: data.staffPrimaryLocation || "",
             vendorCompany: data.vendorCompany || "",
-            vendorService: data.vendorService || "",
+            visitee: data.visitee || "",
+            contact: data.contact || "", // 👈 NEW: future resident contact
             createdAt,
             signedOutAt,
           });
         });
+
         setVisits(rows);
+        setCanLoadMore(snap.size === limitCount);
         setLoading(false);
       },
       (e) => {
@@ -57,7 +82,11 @@ export default function usePropertyVisits(propertyId) {
     );
 
     return () => unsub();
-  }, [propertyId]);
+  }, [propertyId, limitCount]);
 
-  return { visits, loading, error };
+  const loadMore = () => {
+    setLimitCount((prev) => prev + PAGE_SIZE);
+  };
+
+  return { visits, loading, error, canLoadMore, loadMore };
 }
