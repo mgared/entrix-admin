@@ -12,8 +12,6 @@ import {
 } from "firebase/storage";
 import { doc, updateDoc } from "firebase/firestore";
 
-const THEME = "#3BB44A";
-
 // tiny click-outside helper
 function useClickAway(ref, onAway) {
   useEffect(() => {
@@ -85,8 +83,8 @@ function Topbar({ admin, buildings, selectedBuildingId, onSelectBuilding }) {
   return (
     <header className="admin-topbar">
       <div className="topbar-left">
-        <div className="logo-dot" style={{ backgroundColor: THEME }} />
-        <div>
+        <div className="logo-dot" />
+        <div className="topbar-brand">
           <div className="topbar-title">Entrix Admin</div>
           <div className="topbar-sub">Signed in as {admin?.name || "—"}</div>
         </div>
@@ -126,37 +124,11 @@ function Topbar({ admin, buildings, selectedBuildingId, onSelectBuilding }) {
           </button>
 
           {menuOpen && (
-            <div
-              role="menu"
-              className="menu-popover"
-              style={{
-                position: "absolute",
-                right: 0,
-                top: "calc(100% + 8px)",
-                minWidth: 220,
-                background: "#fff",
-                border: "1px solid rgba(0,0,0,0.08)",
-                borderRadius: 12,
-                boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                padding: 6,
-                zIndex: 10,
-              }}
-            >
+            <div role="menu" className="menu-popover">
               <button
                 role="menuitem"
                 className="menu-item-btn"
                 onClick={openLogoPicker}
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  alignItems: "center",
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                }}
               >
                 <Upload size={16} />
                 <span>Change / Upload property logo</span>

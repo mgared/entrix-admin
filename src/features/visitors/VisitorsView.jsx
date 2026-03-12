@@ -26,7 +26,7 @@ const formatVisitTime = (createdAt) => {
       d = new Date(createdAt);
     }
     return d.toLocaleTimeString("en-US", {
-      hour: "numeric",
+      hour: "2-digit",
       minute: "2-digit",
     });
   } catch {
@@ -34,114 +34,121 @@ const formatVisitTime = (createdAt) => {
   }
 };
 
+const RED = "#ff4d4f";
+
+function esc(s) {
+  return String(s || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 const truncate = (text, max = 40) => {
   if (!text) return "";
   if (text.length <= max) return text;
   return text.slice(0, max - 1) + "…";
 };
 
-const buildVisitLogSentence = (v) => {
+const buildVisitLogContent = (v) => {
   const time = formatVisitTime(v.createdAt) || "";
   const roleRaw = v.role || "";
-  const roleLabel = formatRole(roleRaw);
-  const name = displayFullName(v.fullName);
-  const unit = v.unitLabel || "";
-  const reason = (v.reason || "").trim();
-  const vendorCompany = (v.vendorCompany || "").trim();
-  const staffDept = (v.staffDepartmentRole || "").trim();
-  const visiteeRaw = (v.visitee || "").trim();
-  const contact = (v.contact || "").trim(); // 👈 future resident contact
+  const roleLabel = formatRole(roleRaw) || "Visitor";
 
+  const name = displayFullName(v.fullName);
+  const hasName = name && name !== "—";
+  const nameText = hasName ? name : "";
+
+  const unit = (v.unitLabel || "").trim();
+  const reason = (v.reason || "").trim();
   const cleanReason = reason.replace(/^CHR:\s*/i, "").trim();
 
-  const hasName = name && name !== "—";
-  const namePart = hasName ? ` ${name}` : "";
+  const vendorCompany = (v.vendorCompany || "").trim();
+  const staffDept = (v.staffDepartmentRole || "").trim();
+  const contact = (v.contact || "").trim();
+  const notes = (v.notes || "").trim();
+
+  const visiteeRaw = (v.visitee || "").trim();
 
   // Parse visitee: "Resident: Semhal Hagos" or "CHR: Josh"
   let visiteeLabel = "";
   let visiteeTarget = "";
   if (visiteeRaw) {
     const [label, ...rest] = visiteeRaw.split(":");
-    visiteeLabel = (label || "").trim(); // e.g. "Resident", "CHR"
-    visiteeTarget = rest.join(":").trim(); // e.g. "Semhal Hagos", "Josh"
+    visiteeLabel = (label || "").trim();
+    visiteeTarget = rest.join(":").trim();
   }
 
-  const visitingPhrase = (() => {
-    if (!visiteeLabel || !visiteeTarget) return "";
-    if (visiteeLabel.toLowerCase() === "resident") {
-      return `resident ${visiteeTarget}`;
+  // We’ll show "Visiting: X" in the tail (like your other builder)
+  const visitingValue = (() => {
+    if (!visiteeRaw) return "";
+    if (visiteeLabel && visiteeTarget) {
+      // prefer target only (cleaner)
+      return visiteeTarget;
     }
-    return `${visiteeLabel} (${visiteeTarget})`;
+    return visiteeRaw;
   })();
 
-  switch (roleRaw) {
-    case "resident": {
-      if (unit && cleanReason) {
-        return `${time} - Resident${namePart} from ${unit} arrived for ${cleanReason}.`;
-      }
-      if (unit) {
-        return `${time} - Resident${namePart} from ${unit} arrived.`;
-      }
-      if (cleanReason) {
-        return `${time} - Resident${namePart} arrived for ${cleanReason}.`;
-      }
-      return `${time} - Resident${namePart} arrived.`;
-    }
+  // Company/descriptor after name (like your other builder)
+  // vendor -> vendorCompany, staff -> staffDept
+  const company =
+    roleRaw === "vendor" ? vendorCompany : roleRaw === "staff" ? staffDept : "";
 
-    case "guest": {
-      const visiting = visitingPhrase || (unit ? `unit ${unit}` : "");
-      const base = `${time} - Guest${namePart}`;
-      if (visiting && cleanReason) {
-        return `${base} visiting ${visiting} for ${cleanReason}.`;
-      }
-      if (visiting) {
-        return `${base} visiting ${visiting}.`;
-      }
-      if (cleanReason) {
-        return `${base} arrived for ${cleanReason}.`;
-      }
-      return `${base} arrived.`;
-    }
+  // HEAD (Text)
+  let whoText = roleLabel;
+  if (nameText) whoText += ` ${nameText}`;
+  if (company) whoText += ` (${company})`;
 
-    case "futureResident": {
-      const contactPart = contact ? ` (${contact})` : "";
-      if (cleanReason) {
-        return `${time} - Future resident${namePart}${contactPart} arrived for ${cleanReason}.`;
-      }
-      return `${time} - Future resident${namePart}${contactPart} arrived.`;
-    }
+  const addressText = unit ? ` from ${unit}` : "";
+  const headText = `${time} - ${whoText}${addressText}`.trim();
 
-    case "vendor": {
-      const who = vendorCompany
-        ? `Vendor (${vendorCompany}${hasName ? ` -${namePart}` : ""})`
-        : `Vendor${namePart}`;
-      const visiting =
-        visitingPhrase || (unit ? `unit ${unit}` : "the property");
+  // HEAD (HTML)
+  const timeHtml = `<b>${esc(time)}</b>`;
+  const roleHtml = esc(roleLabel);
+  const nameHtml = nameText ? ` <b>${esc(nameText)}</b>` : "";
+  const companyHtml = company ? ` (${esc(company)})` : "";
 
-      if (cleanReason) {
-        return `${time} - ${who} visiting ${visiting} for ${cleanReason}.`;
-      }
-      return `${time} - ${who} visiting ${visiting}.`;
-    }
+  const addressHtml = unit
+    ? ` from (<span style="color:${RED}"><b>${esc(unit)}</b></span>)`
+    : "";
 
-    case "staff": {
-      const dlParts = [];
-      if (staffDept) dlParts.push(staffDept);
-      const dl = dlParts.length ? ` (${dlParts.join(" - ")})` : "";
-      if (cleanReason) {
-        return `${time} - Staff${namePart}${dl} signed in for ${cleanReason}.`;
-      }
-      return `${time} - Staff${namePart}${dl} signed in.`;
-    }
+  const headHtml =
+    `${timeHtml} - ${roleHtml}${nameHtml}${companyHtml}${addressHtml}`.trim();
 
-    default: {
-      const baseRole = roleLabel || "Visitor";
-      if (cleanReason) {
-        return `${time} - ${baseRole}${namePart} arrived for ${cleanReason}.`;
-      }
-      return `${time} - ${baseRole}${namePart} arrived.`;
-    }
+  // TAIL parts (like your other builder: “— a; b; c.”)
+  const partsText = [];
+  const partsHtml = [];
+
+  if (cleanReason) {
+    partsText.push(cleanReason);
+    partsHtml.push(esc(cleanReason));
   }
+
+  if (visitingValue && (roleRaw === "guest" || roleRaw === "vendor")) {
+    partsText.push(`Visiting: ${visitingValue}`);
+    partsHtml.push(
+      `Visiting: <span style="color:${RED}"><b>${esc(visitingValue)}</b></span>`
+    );
+  }
+
+  if (contact && roleRaw === "futureResident") {
+    partsText.push(`Contact: ${contact}`);
+    partsHtml.push(`Contact: <b>${esc(contact)}</b>`);
+  }
+
+  if (notes) {
+    partsText.push(`(${notes})`);
+    partsHtml.push(`(${esc(notes)})`);
+  }
+
+  const tailText = partsText.length ? ` — ${partsText.join("; ")}.` : ".";
+  const tailHtml = partsHtml.length ? ` — ${partsHtml.join("; ")}.` : ".";
+
+  return {
+    sentenceText: headText + tailText,
+    sentenceHtml: headHtml + tailHtml,
+  };
 };
 
 // --- component -----------------------------------------------------------
@@ -163,20 +170,31 @@ function VisitorsView({
   const visitors = getFilteredVisitors(all, visitorFilter);
 
   const handleCopyLog = async (visit) => {
-    const sentence = buildVisitLogSentence(visit);
-    if (!sentence) return;
+    const { sentenceText, sentenceHtml } = buildVisitLogContent(visit);
+    if (!sentenceText) return;
+
     try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(sentence);
+      // ✅ Rich copy (HTML + plain text) when supported
+      if (navigator.clipboard?.write && window.ClipboardItem) {
+        const item = new ClipboardItem({
+          "text/plain": new Blob([sentenceText], { type: "text/plain" }),
+          "text/html": new Blob([sentenceHtml], { type: "text/html" }),
+        });
+        await navigator.clipboard.write([item]);
+      } else if (navigator.clipboard?.writeText) {
+        // fallback: plain text only
+        await navigator.clipboard.writeText(sentenceText);
       } else {
         throw new Error("Clipboard API not available");
       }
-      console.log("Copied:", sentence);
+
+      console.log("Copied (text):", sentenceText);
+      console.log("Copied (html):", sentenceHtml);
     } catch (err) {
       console.error("Failed to copy visit log line", err);
       alert(
         "Could not copy to clipboard automatically. You can copy this text manually:\n\n" +
-          sentence
+          sentenceText
       );
     }
   };

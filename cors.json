@@ -1,0 +1,19 @@
+[
+  {
+    "origin": [
+      "http://localhost:5173",
+      "https://entrix-30a48.web.app",
+      "https://entrix-30a48.firebaseapp.com",
+      "https://entrixadmin.com"
+    ],
+    "method": ["GET", "HEAD", "OPTIONS"],
+    "responseHeader": [
+      "Content-Type",
+      "Content-Disposition",
+      "Accept-Ranges",
+      "Content-Range",
+      "Range"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

@@ -5,8 +5,6 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import "./Authentication.css";
 
-const THEME = "#3BB44A";
-
 export default function Signin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -71,11 +69,8 @@ export default function Signin() {
       <div className="login-shell">
         {/* Left section */}
         <section className="login-left">
-          <div className="login-logo-mark" style={{ borderColor: THEME }}>
-            <div
-              className="login-logo-dot"
-              style={{ backgroundColor: THEME }}
-            />
+          <div className="login-logo-mark">
+            <div className="login-logo-dot" />
           </div>
           <h1 className="login-brand">Entrix Admin</h1>
           <p className="login-label">Secure property admin access</p>
@@ -85,10 +80,7 @@ export default function Signin() {
         <section className="login-right">
           <div className="login-card">
             <div className="login-card-header">
-              <div
-                className="login-card-icon"
-                style={{ backgroundColor: THEME }}
-              >
+              <div className="login-card-icon">
                 <Shield size={18} />
               </div>
               <div>

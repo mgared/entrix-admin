@@ -1,3 +1,4 @@
+// src/layout/AdminLayout.jsx
 import React from "react";
 import Topbar from "./Topbar";
 import NavTabs from "./NavTabs";
@@ -9,6 +10,9 @@ function AdminLayout({
   onSelectBuilding,
   activeView,
   onChangeView,
+  canSeePropertyInfo,
+  canSeeTraining, // ✅ NEW
+  canSeeCalendar,
   children,
 }) {
   const currentBuilding =
@@ -26,10 +30,16 @@ function AdminLayout({
 
         <div className="page-heading">
           <h1>{currentBuilding?.name || "Property"}</h1>
-          <p>Manage visitors, amenity bookings, slideshows, and units.</p>
+          <p>Operations, training, content, and records for this property.</p>
         </div>
 
-        <NavTabs activeView={activeView} onChangeView={onChangeView} />
+        <NavTabs
+          activeView={activeView}
+          onChangeView={onChangeView}
+          canSeePropertyInfo={canSeePropertyInfo}
+          canSeeTraining={canSeeTraining} // ✅ NEW
+          canSeeCalendar={canSeeCalendar}
+        />
 
         <main className="admin-main single-column">{children}</main>
       </div>

@@ -8,7 +8,10 @@ import RequireAuth from "./features/auth/RequireAuth";
 import Signin from "./features/auth/Signin.jsx";
 import AdminPage from "./pages/admin/page.jsx";
 
-// import "./styles/index.css";
+import ToastProvider from "./components/feedback/ToastProvider";
+import ConfirmProvider from "./components/feedback/ConfirmProvider";
+
+import "./index.css";
 import "./styles/admin.css";
 
 const container = document.getElementById("root");
@@ -20,20 +23,24 @@ ReactDOM.createRoot(container).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Public route: sign-in */}
-          <Route path="/" element={<Signin />} />
+        <ToastProvider>
+          <ConfirmProvider>
+            <Routes>
+              {/* Public route: sign-in */}
+              <Route path="/" element={<Signin />} />
 
-          {/* Protected route: admin dashboard */}
-          <Route
-            path="/admin"
-            element={
-              <RequireAuth>
-                <AdminPage />
-              </RequireAuth>
-            }
-          />
-        </Routes>
+              {/* Protected route: admin dashboard */}
+              <Route
+                path="/admin"
+                element={
+                  <RequireAuth>
+                    <AdminPage />
+                  </RequireAuth>
+                }
+              />
+            </Routes>
+          </ConfirmProvider>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>

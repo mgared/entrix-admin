@@ -1,3 +1,4 @@
+// src/pages/admin/page.jsx
 import React, { useEffect, useRef, useState } from "react";
 import AdminLayout from "../../layout/AdminLayout";
 
@@ -13,13 +14,19 @@ import usePropertyUnits from "../../features/units/usePropertyUnits";
 import usePropertyAmenities from "../../features/amenities/usePropertyAmenities";
 import useAmenityBookings from "../../features/amenities/useAmenityBookings";
 import { db, storage } from "../../lib/firebase";
+import ShiftLogsView from "../../features/shiftlogs/ShiftLogsView";
+import PropertyInfoView from "../../features/propertyInfo/PropertyInfoView";
+import AvailabilityCalendarView from "../../features/calendar/AvailabilityCalendarView";
+
+// ✅ NEW
+import TrainingProgressView from "../../features/training/TrainingProgressView";
+
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
   serverTimestamp,
-  // doc,
   getDoc,
   updateDoc,
   setDoc,
@@ -35,10 +42,6 @@ import {
 import usePropertySlides from "../../features/slideshows/usePropertySlides";
 import { slideshowPath } from "../../lib/storagePaths";
 
-// import { demoAdmin } from "../../data/demoAdmin";
-// REMOVE: import { demoBuildings } from "../../data/demoBuildings";
-//
-
 import "./page.css";
 import { computeEndTime } from "../../utils/time";
 
@@ -46,7 +49,7 @@ import { useAuth } from "../../features/auth/AuthContext";
 import useAdminProperties from "../../features/properties/useAdminProperties";
 
 function getEmptyNewBooking() {
-  /* unchanged */ return {
+  return {
     name: "",
     unitLabel: "",
     amenity: "",
@@ -57,7 +60,7 @@ function getEmptyNewBooking() {
   };
 }
 function getEmptyUnit() {
-  /* unchanged */ return {
+  return {
     id: "",
     unitLabel: "",
     residentNames: "",
@@ -80,6 +83,14 @@ export default function AdminPage() {
 
   const [activeView, setActiveView] = useState("visitors");
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("code") && params.get("state")) {
+      setActiveView("calendar");
+    }
+  }, []);
+
   const {
     slides: liveSlides,
     loading: slidesLoading,
@@ -111,7 +122,6 @@ export default function AdminPage() {
         if (snap.exists()) {
           setAdminProfile({ id: snap.id, ...snap.data() });
         } else {
-          // fallback: at least show email
           setAdminProfile({ id: user.uid, name: user.email || "Admin" });
         }
       } catch (err) {
@@ -122,6 +132,7 @@ export default function AdminPage() {
 
     loadAdmin();
   }, [user?.uid]);
+
   // when properties arrive, default to first one
   useEffect(() => {
     if (properties.length && !selectedBuildingId) {
@@ -132,6 +143,14 @@ export default function AdminPage() {
   const role = adminProfile?.role || "concierge";
   const canManageContent = role === "God" || role === "admin";
 
+  // Property Info visibility (concierge + God ONLY)
+  const canSeePropertyInfo = role === "concierge" || role === "God";
+
+  // ✅ NEW: Training tab visibility
+  const canSeeTraining = role === "concierge" || role === "God";
+  const canSeeCalendar =
+    role === "admin" || role === "God" || role === "concierge";
+
   const [visitorFilter, setVisitorFilter] = useState("today");
   const [amenityStatusFilter, setAmenityStatusFilter] = useState("all");
 
@@ -141,16 +160,6 @@ export default function AdminPage() {
     loading: bookingsLoading,
     error: bookingsError,
   } = useAmenityBookings(selectedBuildingId);
-
-  // const [amenityRequestsByBuilding, setAmenityRequestsByBuilding] = useState(
-  //   initialAmenityRequestsByBuilding
-  // );
-  // const [slideshowsByBuilding, setSlideshowsByBuilding] = useState(
-  //   initialSlideshowsByBuilding
-  // );
-  // const [unitsByBuilding, setUnitsByBuilding] = useState(
-  //   initialUnitsByBuilding
-  // );
 
   const [amenityRequestsByBuilding, setAmenityRequestsByBuilding] = useState(
     {}
@@ -163,6 +172,7 @@ export default function AdminPage() {
 
   const [showUnitModal, setShowUnitModal] = useState(false);
   const [editingUnit, setEditingUnit] = useState(getEmptyUnit());
+
   const openAddUnit = () => {
     setEditingUnit({
       id: "",
@@ -173,6 +183,7 @@ export default function AdminPage() {
     });
     setShowUnitModal(true);
   };
+
   const openEditUnit = (u) => {
     setEditingUnit({
       id: u.id,
@@ -183,6 +194,7 @@ export default function AdminPage() {
     });
     setShowUnitModal(true);
   };
+
   const changeUnitField = (key, val) =>
     setEditingUnit((p) => ({ ...p, [key]: val }));
 
@@ -254,8 +266,6 @@ export default function AdminPage() {
     );
   }
 
-  // --- (the rest of your handlers remain exactly as-is) ---
-
   const handleAmenityStatusChange = async (amenityId, bookingId, newStatus) => {
     try {
       if (!selectedBuildingId || !amenityId || !bookingId) return;
@@ -279,8 +289,10 @@ export default function AdminPage() {
     setNewBooking(getEmptyNewBooking());
     setShowAddBooking(true);
   };
+
   const handleNewBookingChange = (field, value) =>
     setNewBooking((p) => ({ ...p, [field]: value }));
+
   const handleAddBookingSubmit = async () => {
     try {
       const {
@@ -321,13 +333,13 @@ export default function AdminPage() {
       await addDoc(colRef, {
         residentName: name,
         unitLabel,
-        unitId: "", // optional if you have it
-        bookedDate, // "YYYY-MM-DD"
-        startAt, // "HH:mm"
-        endAt, // computed
+        unitId: "",
+        bookedDate,
+        startAt,
+        endAt,
         reason: notes || "",
-        guestCount: 1, // or collect from UI later
-        status: "pending", // default
+        guestCount: 1,
+        status: "pending",
         createdAt: serverTimestamp(),
         createdBy: user?.uid || null,
       });
@@ -346,13 +358,10 @@ export default function AdminPage() {
     setNewBooking(getEmptyNewBooking());
   };
 
-  // Trigger the hidden <input type="file" />
-  // Open the hidden <input type="file" />
   const triggerUpload = () => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
 
-  // Upload, cap to MAX_SLIDES, store URLs in property doc (array)
   const handleSlidesUpload = async (e) => {
     try {
       const files = Array.from(e.target.files || []);
@@ -362,7 +371,6 @@ export default function AdminPage() {
       const snap = await getDoc(propRef);
 
       if (!snap.exists()) {
-        // ensure doc exists so writes won’t 404
         await setDoc(propRef, { slideShowImageUrls: [] }, { merge: true });
       }
 
@@ -404,23 +412,18 @@ export default function AdminPage() {
       console.error("Upload failed:", err);
       alert(err?.message || "Upload failed");
     } finally {
-      // reset the <input> so the same file can be reselected later if needed
       if (e?.target) e.target.value = "";
     }
   };
 
-  // Delete a slide: remove storage object and URL from array
   const handleDeleteSlide = async (slideOrId) => {
     try {
       const url = typeof slideOrId === "string" ? slideOrId : slideOrId?.url;
       if (!url || !selectedBuildingId) return;
 
-      // delete from storage using the URL
       await deleteObject(sref(storage, url));
 
-      // remove from property array
       const propRef = doc(db, "Properties", selectedBuildingId);
-
       await setDoc(
         propRef,
         { slideShowImageUrls: arrayRemove(url) },
@@ -430,44 +433,6 @@ export default function AdminPage() {
       console.error("Delete failed:", err);
       alert(err?.message || "Delete failed");
     }
-  };
-
-  const handleSaveUnit = () => {
-    /* unchanged */
-    const { id, unitLabel, residentNames, notes, active } = editingUnit;
-    if (!unitLabel) {
-      alert("Unit label is required.");
-      return;
-    }
-    setUnitsByBuilding((prev) => {
-      const next = { ...prev };
-      const list = [...(next[selectedBuildingId] || [])];
-      if (id) {
-        const idx = list.findIndex((u) => u.id === id);
-        if (idx !== -1) {
-          list[idx] = {
-            ...list[idx],
-            unitLabel,
-            residentNames: residentNames || "",
-            notes: notes || "",
-            active: !!active,
-          };
-        }
-      } else {
-        const newId = `unit-${Date.now()}`;
-        list.push({
-          id: newId,
-          unitLabel,
-          residentNames: residentNames || "",
-          notes: notes || "",
-          active: active !== false,
-        });
-      }
-      next[selectedBuildingId] = list;
-      return next;
-    });
-    setShowUnitModal(false);
-    setEditingUnit(getEmptyUnit());
   };
 
   const handleUnitClear = () => setEditingUnit(getEmptyUnit());
@@ -485,7 +450,33 @@ export default function AdminPage() {
         onSelectBuilding={setSelectedBuildingId}
         activeView={activeView}
         onChangeView={setActiveView}
+        canSeePropertyInfo={canSeePropertyInfo}
+        canSeeTraining={canSeeTraining} // ✅ NEW
+        canSeeCalendar={canSeeCalendar}
       >
+        {activeView === "calendar" &&
+          (canSeeCalendar ? (
+            <AvailabilityCalendarView
+              propertyId={selectedBuildingId}
+              propertyName={selectedBuilding?.name || ""}
+              admin={adminProfile}
+              readOnly={role === "concierge"}
+            />
+          ) : (
+            <div className="muted">You don’t have access to Calendar.</div>
+          ))}
+
+        {activeView === "training" &&
+          (canSeeTraining ? (
+            <TrainingProgressView
+              admin={adminProfile}
+              buildings={buildings}
+              defaultPropertyId={selectedBuildingId}
+            />
+          ) : (
+            <div className="muted">You don’t have access to Training.</div>
+          ))}
+
         {activeView === "visitors" && (
           <VisitorsView
             buildingId={selectedBuildingId}
@@ -515,6 +506,7 @@ export default function AdminPage() {
             canEdit={canManageContent}
           />
         )}
+
         {activeView === "slideshows" && (
           <SlideshowsView
             buildingId={selectedBuildingId}
@@ -548,12 +540,31 @@ export default function AdminPage() {
             canManageEvents={canManageContent}
           />
         )}
+
+        {activeView === "shiftlogs" && (
+          <ShiftLogsView
+            buildingId={selectedBuildingId}
+            buildingName={selectedBuilding?.name || ""}
+            locationLabel="HVCC Front Desk"
+            admin={adminProfile}
+          />
+        )}
+
+        {activeView === "propertyInfo" &&
+          (canSeePropertyInfo ? (
+            <PropertyInfoView
+              buildingId={selectedBuildingId}
+              buildingName={selectedBuilding?.name || ""}
+            />
+          ) : (
+            <div className="muted">You don’t have access to Property Info.</div>
+          ))}
       </AdminLayout>
 
       {showAddBooking && (
         <AddBookingModal
           buildingName={selectedBuilding?.name}
-          amenities={amenities} // <-- so the select is real
+          amenities={amenities}
           newBooking={newBooking}
           onChangeField={handleNewBookingChange}
           onSubmit={handleAddBookingSubmit}

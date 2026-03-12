@@ -52,6 +52,14 @@ function toLocalInputValue(date) {
   return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
 }
 
+async function uploadEventImage({ propertyId, file, prefix }) {
+  const safeName = file.name.replace(/\s+/g, "_");
+  const path = `properties/${propertyId}/events/${prefix}_${Date.now()}_${safeName}`;
+  const ref = sref(storage, path);
+  await uploadBytes(ref, file);
+  return getDownloadURL(ref);
+}
+
 function EventsView({ building, canManageEvents }) {
   const propertyId = building?.id || null;
   const { user } = useAuth();
@@ -69,6 +77,7 @@ function EventsView({ building, canManageEvents }) {
   const [signUpLink, setSignUpLink] = useState("");
   const [location, setLocation] = useState("");
   const [imageFile, setImageFile] = useState(null);
+  const [imageQrFile, setImageQrFile] = useState(null);
 
   const resetForm = () => {
     setTitle("");
@@ -78,6 +87,7 @@ function EventsView({ building, canManageEvents }) {
     setSignUpLink("");
     setLocation("");
     setImageFile(null);
+    setImageQrFile(null);
     setFormError("");
     setEditingEvent(null);
   };
@@ -100,11 +110,20 @@ function EventsView({ building, canManageEvents }) {
       // keep existing image if editing and no new file chosen
       let imageUrl = editingEvent?.imageUrl || "";
       if (imageFile) {
-        const safeName = imageFile.name.replace(/\s+/g, "_");
-        const path = `properties/${propertyId}/events/${Date.now()}_${safeName}`;
-        const r = sref(storage, path);
-        await uploadBytes(r, imageFile);
-        imageUrl = await getDownloadURL(r);
+        imageUrl = await uploadEventImage({
+          propertyId,
+          file: imageFile,
+          prefix: "cover",
+        });
+      }
+
+      let imageUrlQRCode = editingEvent?.imageUrlQRCode || "";
+      if (imageQrFile) {
+        imageUrlQRCode = await uploadEventImage({
+          propertyId,
+          file: imageQrFile,
+          prefix: "qr",
+        });
       }
 
       const startDate = new Date(startAt);
@@ -117,6 +136,7 @@ function EventsView({ building, canManageEvents }) {
         signUpLink,
         location,
         imageUrl,
+        imageUrlQRCode,
       };
 
       if (editingEvent) {
@@ -151,6 +171,7 @@ function EventsView({ building, canManageEvents }) {
     setSignUpLink(ev.signUpLink || "");
     setLocation(ev.location || "");
     setImageFile(null);
+    setImageQrFile(null);
     setFormError("");
     setShowForm(true);
   };
@@ -169,6 +190,14 @@ function EventsView({ building, canManageEvents }) {
           await deleteObject(sref(storage, ev.imageUrl));
         } catch (imgErr) {
           console.error("Failed to delete event image:", imgErr);
+        }
+      }
+
+      if (ev.imageUrlQRCode) {
+        try {
+          await deleteObject(sref(storage, ev.imageUrlQRCode));
+        } catch (imgErr) {
+          console.error("Failed to delete event QR image:", imgErr);
         }
       }
     } catch (err) {
@@ -268,6 +297,21 @@ function EventsView({ building, canManageEvents }) {
                   accept="image/*"
                   onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                 />
+                {editingEvent?.imageUrl && !imageFile && (
+                  <span className="muted tiny">Current cover image will be kept.</span>
+                )}
+              </label>
+
+              <label className="form-field">
+                <span className="field-label">QR Code Image</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImageQrFile(e.target.files?.[0] || null)}
+                />
+                {editingEvent?.imageUrlQRCode && !imageQrFile && (
+                  <span className="muted tiny">Current QR code image will be kept.</span>
+                )}
               </label>
             </div>
 

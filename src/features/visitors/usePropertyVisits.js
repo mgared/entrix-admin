@@ -61,6 +61,7 @@ export default function usePropertyVisits(propertyId) {
             role: data.role || "guest",
             unitLabel: data.unitLabel || "",
             reason: data.reason || "",
+            notes: data.notes || "", // ✅ ADD THIS
             staffDepartmentRole: data.staffDepartmentRole || "",
             vendorCompany: data.vendorCompany || "",
             visitee: data.visitee || "",
